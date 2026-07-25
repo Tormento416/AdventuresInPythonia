@@ -24,42 +24,45 @@ export function Navbar() {
   const archetypeInfo = user?.archetype ? ARCHETYPES[user.archetype as Archetype] : null;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-cyan-500/20 bg-slate-950/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b-2 border-[#3b1e6e] bg-[#0a0518]/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <a href={user ? "/dashboard" : "/"} className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 font-black text-xl text-white shadow-lg shadow-cyan-500/30">
-            🐲
-          </span>
+        <a href={user ? "/dashboard" : "/"} className="flex items-center gap-3 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-700 via-purple-600 to-emerald-500 border-2 border-emerald-400 text-xl text-white shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-105 transition-transform">
+            🐍
+          </div>
           <div>
-            <span className="font-bold text-lg tracking-wider text-white">PYTHONIA</span>
-            <span className="ml-2 text-xs font-semibold text-cyan-400">28-DAY RPG</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-pixel font-bold text-xl tracking-wider text-amber-400 pixel-text-shadow-gold">PYTHONIA</span>
+              <span className="rounded bg-emerald-500/20 border border-emerald-400/50 px-1.5 py-0.5 font-retro text-[9px] text-emerald-300">RPG</span>
+            </div>
+            <p className="text-[10px] font-pixel text-purple-300 tracking-wider">28-DAY CODING ADVENTURE</p>
           </div>
         </a>
 
         {user ? (
           <div className="flex items-center gap-4">
-            <a href="/quests" className="text-sm font-medium text-slate-300 hover:text-cyan-300 transition">
-              Quest Map
+            <a href="/quests" className="font-pixel text-sm font-semibold text-slate-300 hover:text-emerald-300 transition-colors">
+              📜 Quest Map
             </a>
-            <a href="/dashboard" className="flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/40 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:border-cyan-400 transition">
+            <a href="/dashboard" className="flex items-center gap-2 rounded-md border-2 border-purple-500/60 bg-[#160b33] px-3 py-1.5 font-pixel text-xs text-purple-200 hover:border-emerald-400 hover:text-emerald-300 shadow-[0_0_10px_rgba(168,85,247,0.2)] transition">
               <span>{archetypeInfo?.icon || "⚔️"}</span>
               <span>Lvl {user.level || 1} {user.displayName || user.username}</span>
-              {archetypeInfo && <span className="text-cyan-400">({archetypeInfo.name})</span>}
+              {archetypeInfo && <span className="text-amber-400">({archetypeInfo.name})</span>}
             </a>
             <button
               onClick={logout}
-              className="text-xs text-slate-400 hover:text-rose-400 transition"
+              className="font-pixel text-xs text-slate-400 hover:text-rose-400 transition-colors"
             >
               Sign Out
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <a href="/auth/login" className="text-sm font-semibold text-slate-300 hover:text-white">
+            <a href="/auth/login" className="font-pixel text-sm font-semibold text-slate-300 hover:text-amber-300 transition-colors">
               Log In
             </a>
-            <a href="/auth/signup" className="rounded-full bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 shadow-md shadow-cyan-400/20">
-              Begin Adventure
+            <a href="/auth/signup" className="rounded-md border-2 border-emerald-400 bg-emerald-600 px-4 py-2 font-pixel text-xs font-bold text-slate-950 hover:bg-emerald-500 shadow-[2px_2px_0px_#000000,0_0_12px_rgba(34,197,94,0.4)] transition-transform hover:scale-105">
+              ⚔️ Begin Adventure
             </a>
           </div>
         )}
