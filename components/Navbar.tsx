@@ -18,15 +18,17 @@ export function Navbar() {
   const logout = () => {
     localStorage.removeItem("py_hero_user");
     document.cookie = "py_user_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = "/auth/login";
+    window.location.href = "/";
   };
 
   const archetypeInfo = user?.archetype ? ARCHETYPES[user.archetype as Archetype] : null;
+  const isGuest = !user || user?.isGuest || (user?.id && user.id.startsWith("guest_"));
 
   return (
     <header className="sticky top-0 z-50 border-b-2 border-[#3b1e6e] bg-[#0a0518]/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <a href={user ? "/dashboard" : "/"} className="flex items-center gap-3 group">
+        {/* LOGO ALWAYS GOES TO LANDING PAGE FIRST */}
+        <a href="/" className="flex items-center gap-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-700 via-purple-600 to-emerald-500 border-2 border-emerald-400 text-xl text-white shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-105 transition-transform">
             🐍
           </div>
@@ -39,7 +41,8 @@ export function Navbar() {
           </div>
         </a>
 
-        {user ? (
+        {user && !isGuest ? (
+          /* Cloud Authenticated User */
           <div className="flex items-center gap-4">
             <a href="/quests" className="font-pixel text-sm font-semibold text-slate-300 hover:text-emerald-300 transition-colors">
               📜 Quest Map
@@ -57,12 +60,19 @@ export function Navbar() {
             </button>
           </div>
         ) : (
+          /* Guest Player or Unauthenticated */
           <div className="flex items-center gap-3">
-            <a href="/auth/login" className="font-pixel text-sm font-semibold text-slate-300 hover:text-amber-300 transition-colors">
+            <a href="/quests" className="font-pixel text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors">
+              📜 Quest Map
+            </a>
+            <a href="/auth/login" className="font-pixel text-xs font-semibold text-slate-300 hover:text-amber-300 transition-colors">
               Log In
             </a>
-            <a href="/auth/signup" className="rounded-md border-2 border-emerald-400 bg-emerald-600 px-4 py-2 font-pixel text-xs font-bold text-slate-950 hover:bg-emerald-500 shadow-[2px_2px_0px_#000000,0_0_12px_rgba(34,197,94,0.4)] transition-transform hover:scale-105">
-              ⚔️ Begin Adventure
+            <a href="/auth/signup" className="rounded-md border border-purple-400/80 bg-purple-950/80 px-3 py-1.5 font-pixel text-xs text-purple-200 hover:border-emerald-400 hover:text-emerald-300 transition">
+              ☁️ Save Online
+            </a>
+            <a href="/create-character" className="rounded-md border-2 border-emerald-400 bg-emerald-600 px-4 py-1.5 font-pixel text-xs font-bold text-slate-950 hover:bg-emerald-500 shadow-[2px_2px_0px_#000000,0_0_12px_rgba(34,197,94,0.4)] transition-transform hover:scale-105">
+              ⚔️ Play Guest
             </a>
           </div>
         )}

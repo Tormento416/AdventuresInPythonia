@@ -16,11 +16,34 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
+    // Check if user has local guest progress to sync
+    let localGuest: any = null;
+    const cached = localStorage.getItem("py_hero_user");
+    if (cached) {
+      try {
+        localGuest = JSON.parse(cached);
+      } catch (err) {}
+    }
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, displayName: displayName || username })
+        body: JSON.stringify({
+          username,
+          password,
+          displayName: displayName || username,
+          ...(localGuest ? {
+            archetype: localGuest.archetype || null,
+            level: localGuest.level || 1,
+            xp: localGuest.xp || 0,
+            currentDay: localGuest.currentDay || 1,
+            completedSubQuestIds: localGuest.completedSubQuestIds || [],
+            completedMiniBossDays: localGuest.completedMiniBossDays || [],
+            completedWeeklyBossWeeks: localGuest.completedWeeklyBossWeeks || [],
+            lootInventory: localGuest.lootInventory || []
+          } : {})
+        })
       });
       const data = await res.json();
 
@@ -31,7 +54,12 @@ export default function SignupPage() {
       }
 
       localStorage.setItem("py_hero_user", JSON.stringify(data.user));
-      router.push("/create-character");
+
+      if (data.user?.archetype) {
+        router.push("/quests");
+      } else {
+        router.push("/create-character");
+      }
     } catch (err: any) {
       setError(err.message || "Network error");
       setLoading(false);
@@ -40,11 +68,13 @@ export default function SignupPage() {
 
   return (
     <main className="flex min-h-[85vh] items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="w-full max-w-md rounded-3xl border border-purple-500/50 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-xl">
         <div className="text-center">
           <span className="text-4xl">⚔️</span>
-          <h1 className="mt-3 text-3xl font-extrabold text-white">Create Hero Account</h1>
-          <p className="mt-1 text-xs text-slate-400">Join the 28-day Pythonia training bootcamp</p>
+          <h1 className="mt-3 text-3xl font-extrabold text-white">Save Progress Online</h1>
+          <p className="mt-1 text-xs text-purple-200">
+            Create a cloud hero account to sync your game progress across devices
+          </p>
         </div>
 
         {error && (
@@ -55,7 +85,7 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-300">Display Name</label>
+            <label className="text-xs font-bold text-slate-300 font-retro">Display Name</label>
             <input
               type="text"
               required
@@ -67,7 +97,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-300">Username</label>
+            <label className="text-xs font-bold text-slate-300 font-retro">Username</label>
             <input
               type="text"
               required
@@ -79,7 +109,7 @@ export default function SignupPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-300">Password</label>
+            <label className="text-xs font-bold text-slate-300 font-retro">Password</label>
             <input
               type="password"
               required
@@ -93,15 +123,15 @@ export default function SignupPage() {
           <button
             disabled={loading}
             type="submit"
-            className="w-full rounded-xl bg-gradient-to-r from-cyan-400 to-indigo-500 py-3.5 font-extrabold text-slate-950 shadow-lg shadow-cyan-400/20 hover:scale-[1.02] transition disabled:opacity-50"
+            className="w-full rounded-xl border-2 border-emerald-400 bg-emerald-600 py-3.5 font-retro text-xs font-extrabold text-slate-950 shadow-lg hover:bg-emerald-500 hover:scale-[1.02] transition disabled:opacity-50"
           >
-            {loading ? "Creating Character..." : "Proceed to Day 1 Archetype Selection"}
+            {loading ? "Syncing Account..." : "☁️ Create Account & Sync Progress"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-xs text-slate-400">
           Already registered?{" "}
-          <a href="/auth/login" className="font-bold text-cyan-400 hover:underline">
+          <a href="/auth/login" className="font-bold text-amber-300 hover:underline font-retro">
             Log In Here
           </a>
         </p>

@@ -17,6 +17,21 @@ export default function WeeklyBossPage({ params }: { params: { week: string } })
       try {
         setUser(JSON.parse(cached));
       } catch (e) {}
+    } else {
+      const guest = {
+        id: "guest_" + Date.now(),
+        username: "GuestHero",
+        displayName: "Guest Hero",
+        level: 1,
+        xp: 0,
+        currentDay: weekNum * 7,
+        completedSubQuestIds: [],
+        completedMiniBossDays: [],
+        completedWeeklyBossWeeks: [],
+        isGuest: true
+      };
+      setUser(guest);
+      localStorage.setItem("py_hero_user", JSON.stringify(guest));
     }
 
     fetch(`/api/quests?week=${weekNum}`)
@@ -38,37 +53,58 @@ export default function WeeklyBossPage({ params }: { params: { week: string } })
   }, [weekNum]);
 
   async function handleVictory(weekNumber: number, lootBadge: string) {
-    if (!user) return;
-
-    const userId = user.id || user._id;
     const xpAmount = weekNumber === 4 ? 1000 : 500;
+    const isCloudUser = user?.id && !user.isGuest && !user.id.startsWith("guest_");
 
-    try {
-      const res = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          type: "weeklyboss",
-          weekNumber,
-          xpEarned: xpAmount,
-          lootEarned: lootBadge
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const updatedUser = {
-          ...user,
-          xp: data.xp,
-          level: data.level,
-          currentDay: data.currentDay,
-          completedWeeklyBossWeeks: data.completedWeeklyBossWeeks,
-          lootInventory: data.lootInventory
-        };
-        setUser(updatedUser);
-        localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
-      }
-    } catch (e) {}
+    if (isCloudUser) {
+      try {
+        const res = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id || user._id,
+            type: "weeklyboss",
+            weekNumber,
+            xpEarned: xpAmount,
+            lootEarned: lootBadge
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const updatedUser = {
+            ...user,
+            xp: data.xp,
+            level: data.level,
+            currentDay: data.currentDay,
+            completedWeeklyBossWeeks: data.completedWeeklyBossWeeks,
+            lootInventory: data.lootInventory
+          };
+          setUser(updatedUser);
+          localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Guest Mode: Update local storage
+    const currentBosses = user?.completedWeeklyBossWeeks || [];
+    const newBosses = currentBosses.includes(weekNumber) ? currentBosses : [...currentBosses, weekNumber];
+    const currentLoot = user?.lootInventory || [];
+    const newLoot = lootBadge && !currentLoot.includes(lootBadge) ? [...currentLoot, lootBadge] : currentLoot;
+
+    const newXp = (user?.xp || 0) + xpAmount;
+    const newLevel = Math.floor(newXp / 250) + 1;
+
+    const updatedGuest = {
+      ...(user || {}),
+      xp: newXp,
+      level: newLevel,
+      currentDay: Math.max(user?.currentDay || 1, weekNumber * 7 + 1),
+      completedWeeklyBossWeeks: newBosses,
+      lootInventory: newLoot
+    };
+    setUser(updatedGuest);
+    localStorage.setItem("py_hero_user", JSON.stringify(updatedGuest));
   }
 
   if (loading) {

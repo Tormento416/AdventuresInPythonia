@@ -26,6 +26,22 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
       try {
         setUser(JSON.parse(cached));
       } catch (e) {}
+    } else {
+      // Default initial guest hero
+      const guest = {
+        id: "guest_" + Date.now(),
+        username: "GuestHero",
+        displayName: "Guest Hero",
+        level: 1,
+        xp: 0,
+        currentDay: 1,
+        completedSubQuestIds: [],
+        completedMiniBossDays: [],
+        completedWeeklyBossWeeks: [],
+        isGuest: true
+      };
+      setUser(guest);
+      localStorage.setItem("py_hero_user", JSON.stringify(guest));
     }
 
     // Load quest details from API or seed data
@@ -48,66 +64,110 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
   }, [dayNum, router]);
 
   async function handleCompleteSubQuest(subQuestId: string, userCode: string) {
-    if (!user) return;
+    const isCloudUser = user?.id && !user.isGuest && !user.id.startsWith("guest_");
 
-    const userId = user.id || user._id;
-    try {
-      const res = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          type: "subquest",
-          subQuestId,
-          userCode,
-          xpEarned: 50
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const updatedUser = {
-          ...user,
-          xp: data.xp,
-          level: data.level,
-          completedSubQuestIds: data.completedSubQuestIds
-        };
-        setUser(updatedUser);
-        localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
-      }
-    } catch (e) {}
+    if (isCloudUser) {
+      try {
+        const res = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id || user._id,
+            type: "subquest",
+            subQuestId,
+            userCode,
+            xpEarned: 50
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const updatedUser = {
+            ...user,
+            xp: data.xp,
+            level: data.level,
+            completedSubQuestIds: data.completedSubQuestIds
+          };
+          setUser(updatedUser);
+          localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Fallback or Guest Mode: Update local storage
+    const currentCompleted = user?.completedSubQuestIds || [];
+    const newCompleted = currentCompleted.includes(subQuestId)
+      ? currentCompleted
+      : [...currentCompleted, subQuestId];
+    const newXp = (user?.xp || 0) + 50;
+    const newLevel = Math.floor(newXp / 250) + 1;
+
+    const updatedGuest = {
+      ...(user || {}),
+      xp: newXp,
+      level: newLevel,
+      completedSubQuestIds: newCompleted
+    };
+    setUser(updatedGuest);
+    localStorage.setItem("py_hero_user", JSON.stringify(updatedGuest));
   }
 
   async function handleCompleteMiniBoss(userCode: string) {
-    if (!user || !quest?.miniBoss) return;
+    if (!quest?.miniBoss) return;
+    const isCloudUser = user?.id && !user.isGuest && !user.id.startsWith("guest_");
 
-    const userId = user.id || user._id;
-    try {
-      const res = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId,
-          type: "miniboss",
-          dayNumber: dayNum,
-          userCode,
-          xpEarned: 150,
-          lootEarned: quest.miniBoss.lootReward
-        })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const updatedUser = {
-          ...user,
-          xp: data.xp,
-          level: data.level,
-          currentDay: data.currentDay,
-          completedMiniBossDays: data.completedMiniBossDays,
-          lootInventory: data.lootInventory
-        };
-        setUser(updatedUser);
-        localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
-      }
-    } catch (e) {}
+    if (isCloudUser) {
+      try {
+        const res = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id || user._id,
+            type: "miniboss",
+            dayNumber: dayNum,
+            userCode,
+            xpEarned: 150,
+            lootEarned: quest.miniBoss.lootReward
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const updatedUser = {
+            ...user,
+            xp: data.xp,
+            level: data.level,
+            currentDay: data.currentDay,
+            completedMiniBossDays: data.completedMiniBossDays,
+            lootInventory: data.lootInventory
+          };
+          setUser(updatedUser);
+          localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Fallback or Guest Mode: Update local storage
+    const currentBosses = user?.completedMiniBossDays || [];
+    const newBosses = currentBosses.includes(dayNum) ? currentBosses : [...currentBosses, dayNum];
+    const currentLoot = user?.lootInventory || [];
+    const newLoot = quest.miniBoss.lootReward && !currentLoot.includes(quest.miniBoss.lootReward)
+      ? [...currentLoot, quest.miniBoss.lootReward]
+      : currentLoot;
+
+    const newXp = (user?.xp || 0) + 150;
+    const newLevel = Math.floor(newXp / 250) + 1;
+
+    const updatedGuest = {
+      ...(user || {}),
+      xp: newXp,
+      level: newLevel,
+      currentDay: Math.max(user?.currentDay || 1, dayNum + 1),
+      completedMiniBossDays: newBosses,
+      lootInventory: newLoot
+    };
+    setUser(updatedGuest);
+    localStorage.setItem("py_hero_user", JSON.stringify(updatedGuest));
   }
 
   if (loading) {

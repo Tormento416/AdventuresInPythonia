@@ -5,23 +5,11 @@ export async function middleware(request: NextRequest) {
   const userIdCookie = request.cookies.get("py_user_id")?.value;
   const pathname = request.nextUrl.pathname;
 
-  const isProtected =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/quests") ||
-    pathname.startsWith("/create-character") ||
-    pathname.startsWith("/boss");
-
   const isAuthPage =
     pathname.startsWith("/auth/login") ||
     pathname.startsWith("/auth/signup");
 
-  if (!userIdCookie && isProtected) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    url.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(url);
-  }
-
+  // If already logged in, redirect auth pages to dashboard
   if (userIdCookie && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
@@ -33,10 +21,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/quests/:path*",
-    "/create-character",
-    "/boss/:path*",
     "/auth/login",
     "/auth/signup"
   ]

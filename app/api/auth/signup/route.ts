@@ -3,7 +3,20 @@ import { connectToDatabase } from "@/lib/db/mongodb";
 
 export async function POST(req: Request) {
   try {
-    const { username, password, displayName } = await req.json();
+    const {
+      username,
+      password,
+      displayName,
+      archetype,
+      level,
+      xp,
+      currentDay,
+      completedSubQuestIds,
+      completedMiniBossDays,
+      completedWeeklyBossWeeks,
+      lootInventory
+    } = await req.json();
+
     if (!username || !password) {
       return NextResponse.json({ error: "Username and password required" }, { status: 400 });
     }
@@ -21,18 +34,18 @@ export async function POST(req: Request) {
       username: cleanUsername,
       password: password,
       displayName: displayName || username,
-      archetype: null,
-      level: 1,
-      xp: 0,
+      archetype: archetype || null,
+      level: level || 1,
+      xp: xp || 0,
       hp: 100,
       maxHp: 100,
       mana: 100,
       maxMana: 100,
-      currentDay: 1,
-      completedSubQuestIds: [],
-      completedMiniBossDays: [],
-      completedWeeklyBossWeeks: [],
-      lootInventory: [],
+      currentDay: currentDay || 1,
+      completedSubQuestIds: completedSubQuestIds || [],
+      completedMiniBossDays: completedMiniBossDays || [],
+      completedWeeklyBossWeeks: completedWeeklyBossWeeks || [],
+      lootInventory: lootInventory || [],
       userCodeSubmissions: {},
       createdAt: new Date(),
       updatedAt: new Date()
