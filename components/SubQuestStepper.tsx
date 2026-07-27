@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Quest, SubQuest, MiniBoss } from "@/lib/db/models";
+import { Quest, SubQuest, MiniBoss, Archetype } from "@/lib/db/models";
 import { CodeEditor } from "./CodeEditor";
 
 interface SubQuestStepperProps {
   quest: Quest;
   completedSubQuestIds: string[];
   completedMiniBoss: boolean;
+  userArchetype?: Archetype;
   onCompleteSubQuest: (subQuestId: string, code: string) => void;
   onCompleteMiniBoss: (code: string) => void;
 }
@@ -16,6 +17,7 @@ export function SubQuestStepper({
   quest,
   completedSubQuestIds,
   completedMiniBoss,
+  userArchetype,
   onCompleteSubQuest,
   onCompleteMiniBoss
 }: SubQuestStepperProps) {
@@ -27,6 +29,14 @@ export function SubQuestStepper({
   const isMiniBossStep = activeStep === quest.subQuests.length;
   const currentSubQuest: SubQuest | undefined = quest.subQuests[activeStep];
   const miniBoss: MiniBoss | undefined = quest.miniBoss;
+
+  // Resolve archetype-specific variant for current sub-quest (if available)
+  const archetypeVariant = userArchetype && currentSubQuest?.archetypeVariant?.[userArchetype];
+  const activeTitle = archetypeVariant?.title ?? currentSubQuest?.title;
+  const activeNarrative = archetypeVariant?.narrative ?? currentSubQuest?.narrative;
+  const activeCodeTask = archetypeVariant?.codeTask ?? currentSubQuest?.codeTask;
+  const activeStarterCode = archetypeVariant?.starterCode ?? currentSubQuest?.starterCode;
+  const activeTestAssertion = archetypeVariant?.testAssertion ?? currentSubQuest?.testAssertion;
 
   return (
     <div className="space-y-6">
@@ -78,11 +88,18 @@ export function SubQuestStepper({
             <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-400 border border-cyan-500/20">
               Side Quest {activeStep + 1} of {quest.subQuests.length}
             </span>
-            <span className="text-xs font-semibold text-emerald-400">+50 XP Reward</span>
+            <div className="flex items-center gap-2">
+              {archetypeVariant && (
+                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+                  ⚡ Archetype Variant Active
+                </span>
+              )}
+              <span className="text-xs font-semibold text-emerald-400">+50 XP Reward</span>
+            </div>
           </div>
 
-          <h2 className="mt-3 text-2xl font-bold text-white">{currentSubQuest.title}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">{currentSubQuest.narrative}</p>
+          <h2 className="mt-3 text-2xl font-bold text-white">{activeTitle}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">{activeNarrative}</p>
 
           <div className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-950/30 p-4">
             <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-300">Spell Knowledge</h4>
@@ -91,13 +108,13 @@ export function SubQuestStepper({
 
           <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-4">
             <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Quest Requirement</h4>
-            <p className="mt-1 text-sm font-semibold text-white">{currentSubQuest.codeTask}</p>
+            <p className="mt-1 text-sm font-semibold text-white">{activeCodeTask}</p>
           </div>
 
           <div className="mt-6">
             <CodeEditor
-              initialCode={currentSubQuest.starterCode}
-              testAssertion={currentSubQuest.testAssertion}
+              initialCode={activeStarterCode ?? ""}
+              testAssertion={activeTestAssertion}
               hints={currentSubQuest.hints}
               onSuccess={(code) => onCompleteSubQuest(currentSubQuest.id, code)}
               submitLabel="Cast Quest Spell"

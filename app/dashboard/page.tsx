@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BootcampSummary } from "@/components/BootcampSummary";
+import { ContextCloud } from "@/components/ContextCloud";
 import { ARCHETYPES, Archetype } from "@/lib/db/models";
 
 export default function DashboardPage() {
@@ -45,12 +46,62 @@ export default function DashboardPage() {
   }
 
   const archetypeInfo = user.archetype ? ARCHETYPES[user.archetype as Archetype] : null;
+  const currentDay = user.currentDay || 1;
+  const currentFloor = Math.min(4, Math.ceil(currentDay / 7));
+  const floorNames = [
+    "Floor 1 — Awakening of Syntaxia",
+    "Floor 2 — The Data Caverns",
+    "Floor 3 — The Object-Oriented Citadel",
+    "Floor 4 — The Code Sovereign Realm"
+  ];
+  const floorColors = ["cyan", "emerald", "purple", "amber"];
 
   return (
     <main className="min-h-screen p-6 sm:p-10">
       <div className="mx-auto max-w-6xl space-y-8">
         {/* Main Character Header Summary */}
         <BootcampSummary user={user} />
+
+        {/* Floor Level Progress Banner */}
+        <section className={`rounded-2xl border-2 ${
+          currentFloor === 4 ? 'border-amber-500/60 bg-amber-950/30' :
+          currentFloor === 3 ? 'border-purple-500/60 bg-purple-950/30' :
+          currentFloor === 2 ? 'border-emerald-500/60 bg-emerald-950/30' :
+          'border-cyan-500/60 bg-cyan-950/30'
+        } p-5 backdrop-blur-xl`}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className={`font-retro text-[10px] uppercase tracking-widest ${
+                currentFloor === 4 ? 'text-amber-400' :
+                currentFloor === 3 ? 'text-purple-400' :
+                currentFloor === 2 ? 'text-emerald-400' :
+                'text-cyan-400'
+              }`}>
+                🗺️ Current Dungeon Floor
+              </span>
+              <h3 className="mt-1 font-pixel text-xl font-bold text-white">
+                {floorNames[currentFloor - 1]}
+              </h3>
+              <p className="mt-1 font-sans text-xs text-slate-400">
+                Day {currentDay} of 28 — Floor {currentFloor} of 4
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {[1,2,3,4].map((floor) => (
+                <div
+                  key={floor}
+                  className={`h-8 w-8 rounded-lg border-2 flex items-center justify-center font-retro text-xs font-bold ${
+                    floor < currentFloor ? 'border-emerald-400 bg-emerald-950 text-emerald-300' :
+                    floor === currentFloor ? `border-${floorColors[floor-1]}-400 bg-${floorColors[floor-1]}-950 text-${floorColors[floor-1]}-300 shadow-[0_0_10px_rgba(34,197,94,0.4)]` :
+                    'border-slate-700 bg-slate-900 text-slate-600'
+                  }`}
+                >
+                  {floor < currentFloor ? '✓' : floor}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Day 1 Archetype Card if not set */}
         {!user.archetype && (
@@ -122,12 +173,20 @@ export default function DashboardPage() {
         {/* Character Class Info Card */}
         {archetypeInfo && (
           <section className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 backdrop-blur-xl">
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">{archetypeInfo.icon}</span>
-              <div>
-                <h3 className="text-xl font-bold text-white">{archetypeInfo.name} Archetype Mastery</h3>
-                <p className="text-xs font-semibold text-cyan-300">{archetypeInfo.roleTitle}</p>
+            <div className="flex flex-wrap items-center gap-4 justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-4xl">{archetypeInfo.icon}</span>
+                <div>
+                  <h3 className="text-xl font-bold text-white">{archetypeInfo.name} — Active Specialization Path</h3>
+                  <p className="text-xs font-semibold text-cyan-300">{archetypeInfo.roleTitle} · {archetypeInfo.focusArea}</p>
+                </div>
               </div>
+              <a
+                href="/create-character"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-xs font-bold text-slate-400 hover:text-white hover:border-slate-500 transition"
+              >
+                Change Archetype
+              </a>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-slate-300">{archetypeInfo.description}</p>
             <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-cyan-200">
@@ -141,6 +200,12 @@ export default function DashboardPage() {
           </section>
         )}
       </div>
+
+      {/* Context Cloud Companion */}
+      <ContextCloud
+        currentDay={currentDay}
+        userArchetype={user.archetype as Archetype | undefined}
+      />
     </main>
   );
 }

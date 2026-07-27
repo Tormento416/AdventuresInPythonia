@@ -11,7 +11,7 @@ export function Navbar() {
     if (cached) {
       try {
         setUser(JSON.parse(cached));
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -27,19 +27,28 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b-2 border-[#3b1e6e] bg-[#0a0518]/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        {/* LOGO ALWAYS GOES TO LANDING PAGE FIRST */}
-        <a href="/" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-700 via-purple-600 to-emerald-500 border-2 border-emerald-400 text-xl text-white shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-105 transition-transform">
-            🐍
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-pixel font-bold text-xl tracking-wider text-amber-400 pixel-text-shadow-gold">PYTHONIA</span>
-              <span className="rounded bg-emerald-500/20 border border-emerald-400/50 px-1.5 py-0.5 font-retro text-[9px] text-emerald-300">RPG</span>
+        <div className="flex items-center gap-4">
+          <a
+            href="https://tormento-learning-games.vercel.app/"
+            className="flex items-center gap-1.5 rounded-md border border-amber-500/50 bg-amber-950/40 px-3 py-1.5 font-pixel text-xs font-bold text-amber-300 hover:border-amber-400 hover:text-amber-200 hover:bg-amber-900/60 transition-all shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+          >
+            &lt; Return Home
+          </a>
+
+          {/* LOGO ALWAYS GOES TO LANDING PAGE FIRST */}
+          <a href="/" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-tr from-purple-700 via-purple-600 to-emerald-500 border-2 border-emerald-400 text-xl text-white shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-105 transition-transform">
+              🐍
             </div>
-            <p className="text-[10px] font-pixel text-purple-300 tracking-wider">28-DAY CODING ADVENTURE</p>
-          </div>
-        </a>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-pixel font-bold text-xl tracking-wider text-amber-400 pixel-text-shadow-gold">PYTHONIA</span>
+                <span className="rounded bg-emerald-500/20 border border-emerald-400/50 px-1.5 py-0.5 font-retro text-[9px] text-emerald-300">RPG</span>
+              </div>
+              <p className="text-[10px] font-pixel text-purple-300 tracking-wider">28-DAY CODING ADVENTURE</p>
+            </div>
+          </a>
+        </div>
 
         {user && !isGuest ? (
           /* Cloud Authenticated User */

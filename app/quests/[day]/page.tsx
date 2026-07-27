@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SubQuestStepper } from "@/components/SubQuestStepper";
+import { DungeonCanvas } from "@/components/dungeon/DungeonCanvas";
+import { CombatOverlay } from "@/components/dungeon/CombatOverlay";
+import { ContextCloud } from "@/components/ContextCloud";
 import { DAILY_QUESTS_SEED } from "@/lib/db/seedData";
-import { Quest } from "@/lib/db/models";
+import { getDungeonLevel } from "@/lib/dungeon/levels";
+import { ObstacleConfig } from "@/lib/dungeon/types";
+import { Quest, Archetype, SubQuest } from "@/lib/db/models";
 
 export default function DailyQuestPage({ params }: { params: { day: string } }) {
   const dayNum = Number(params.day);
@@ -13,6 +17,10 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
   const [user, setUser] = useState<any>(null);
   const [quest, setQuest] = useState<Quest | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Active interaction in Dungeon
+  const [activeObstacle, setActiveObstacle] = useState<ObstacleConfig | null>(null);
+  const [isCloudOpen, setIsCloudOpen] = useState(false);
 
   useEffect(() => {
     // If Day 7, 14, 21, or 28 -> redirect to Weekly Boss page
@@ -38,7 +46,7 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
         completedSubQuestIds: [],
         completedMiniBossDays: [],
         completedWeeklyBossWeeks: [],
-        isGuest: true
+        isGuest: true,
       };
       setUser(guest);
       localStorage.setItem("py_hero_user", JSON.stringify(guest));
@@ -76,8 +84,8 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
             type: "subquest",
             subQuestId,
             userCode,
-            xpEarned: 50
-          })
+            xpEarned: 50,
+          }),
         });
         const data = await res.json();
         if (res.ok) {
@@ -85,10 +93,11 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
             ...user,
             xp: data.xp,
             level: data.level,
-            completedSubQuestIds: data.completedSubQuestIds
+            completedSubQuestIds: data.completedSubQuestIds,
           };
           setUser(updatedUser);
           localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+          setActiveObstacle(null);
           return;
         }
       } catch (e) {}
@@ -106,10 +115,11 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
       ...(user || {}),
       xp: newXp,
       level: newLevel,
-      completedSubQuestIds: newCompleted
+      completedSubQuestIds: newCompleted,
     };
     setUser(updatedGuest);
     localStorage.setItem("py_hero_user", JSON.stringify(updatedGuest));
+    setActiveObstacle(null);
   }
 
   async function handleCompleteMiniBoss(userCode: string) {
@@ -127,8 +137,8 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
             dayNumber: dayNum,
             userCode,
             xpEarned: 150,
-            lootEarned: quest.miniBoss.lootReward
-          })
+            lootEarned: quest.miniBoss.lootReward,
+          }),
         });
         const data = await res.json();
         if (res.ok) {
@@ -138,10 +148,11 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
             level: data.level,
             currentDay: data.currentDay,
             completedMiniBossDays: data.completedMiniBossDays,
-            lootInventory: data.lootInventory
+            lootInventory: data.lootInventory,
           };
           setUser(updatedUser);
           localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+          setActiveObstacle(null);
           return;
         }
       } catch (e) {}
@@ -151,9 +162,10 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
     const currentBosses = user?.completedMiniBossDays || [];
     const newBosses = currentBosses.includes(dayNum) ? currentBosses : [...currentBosses, dayNum];
     const currentLoot = user?.lootInventory || [];
-    const newLoot = quest.miniBoss.lootReward && !currentLoot.includes(quest.miniBoss.lootReward)
-      ? [...currentLoot, quest.miniBoss.lootReward]
-      : currentLoot;
+    const newLoot =
+      quest.miniBoss.lootReward && !currentLoot.includes(quest.miniBoss.lootReward)
+        ? [...currentLoot, quest.miniBoss.lootReward]
+        : currentLoot;
 
     const newXp = (user?.xp || 0) + 150;
     const newLevel = Math.floor(newXp / 250) + 1;
@@ -164,16 +176,17 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
       level: newLevel,
       currentDay: Math.max(user?.currentDay || 1, dayNum + 1),
       completedMiniBossDays: newBosses,
-      lootInventory: newLoot
+      lootInventory: newLoot,
     };
     setUser(updatedGuest);
     localStorage.setItem("py_hero_user", JSON.stringify(updatedGuest));
+    setActiveObstacle(null);
   }
 
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center p-8">
-        <p className="text-sm font-semibold text-cyan-300 animate-pulse">Loading Day {dayNum} Quests...</p>
+        <p className="text-sm font-semibold text-cyan-300 animate-pulse">Loading Day {dayNum} Dungeon...</p>
       </main>
     );
   }
@@ -192,20 +205,42 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
 
   const completedSubQuestIds = user?.completedSubQuestIds || [];
   const completedMiniBoss = (user?.completedMiniBossDays || []).includes(dayNum);
+  const dungeonLevel = getDungeonLevel(dayNum);
+
+  // Find subquest or boss for active obstacle modal
+  let activeSubQuest: SubQuest | undefined;
+  if (activeObstacle && activeObstacle.type === "chest") {
+    activeSubQuest = quest.subQuests.find((sq) => sq.id === activeObstacle.questId);
+    if (!activeSubQuest && dungeonLevel) {
+      const chests = dungeonLevel.obstacles.filter((o) => o.type === "chest");
+      const chestIdx = chests.findIndex((o) => o.tileX === activeObstacle.tileX && o.tileY === activeObstacle.tileY);
+      if (chestIdx >= 0 && chestIdx < quest.subQuests.length) {
+        activeSubQuest = quest.subQuests[chestIdx];
+      }
+    }
+    if (!activeSubQuest && quest.subQuests.length > 0) {
+      activeSubQuest = quest.subQuests[0];
+    }
+  }
 
   return (
-    <main className="min-h-screen p-6 sm:p-10">
-      <div className="mx-auto max-w-5xl space-y-6">
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="mx-auto max-w-6xl space-y-6">
         {/* Quest Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-cyan-500/20 bg-slate-900/60 p-6 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-cyan-500/20 bg-slate-900/60 p-5 backdrop-blur-xl">
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-black text-slate-950">
                 DAY {quest.dayNumber}
               </span>
               <span className="text-xs font-bold text-slate-400">{quest.category}</span>
+              {user?.archetype && (
+                <span className="rounded-full bg-amber-400/20 border border-amber-400/40 px-3 py-1 text-[10px] font-bold text-amber-300">
+                  Specialization: {user.archetype.toUpperCase()}
+                </span>
+              )}
             </div>
-            <h1 className="mt-2 text-3xl font-black text-white">{quest.title}</h1>
+            <h1 className="mt-2 text-2xl sm:text-3xl font-black text-white">{quest.title}</h1>
             <p className="text-xs font-semibold text-cyan-300">{quest.subtitle}</p>
           </div>
 
@@ -227,15 +262,44 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
           </div>
         </div>
 
-        {/* SubQuest Stepper */}
-        <SubQuestStepper
-          quest={quest}
-          completedSubQuestIds={completedSubQuestIds}
-          completedMiniBoss={completedMiniBoss}
-          onCompleteSubQuest={handleCompleteSubQuest}
-          onCompleteMiniBoss={handleCompleteMiniBoss}
-        />
+        {/* Top-Down 2D Dungeon View */}
+        {dungeonLevel && (
+          <div className="space-y-4">
+            <DungeonCanvas
+              level={dungeonLevel}
+              userArchetype={user?.archetype}
+              completedSubQuestIds={completedSubQuestIds}
+              completedMiniBoss={completedMiniBoss}
+              onObstacleInteract={(obs) => setActiveObstacle(obs)}
+              onContextCloudTrigger={() => setIsCloudOpen(true)}
+              onExitReach={() => {
+                if (dayNum < 28) router.push(`/quests/${dayNum + 1}`);
+                else router.push("/quests");
+              }}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Combat / Code Editor Modal when interacting with obstacles */}
+      {activeObstacle && (
+        <CombatOverlay
+          obstacle={activeObstacle}
+          subQuest={activeSubQuest}
+          miniBoss={quest.miniBoss}
+          userArchetype={user?.archetype}
+          onSolveSubQuest={handleCompleteSubQuest}
+          onSolveMiniBoss={handleCompleteMiniBoss}
+          onClose={() => setActiveObstacle(null)}
+        />
+      )}
+
+      {/* Context Cloud Floating Companion */}
+      <ContextCloud
+        currentDay={dayNum}
+        userArchetype={user?.archetype as Archetype | undefined}
+        autoExpand={isCloudOpen}
+      />
     </main>
   );
 }

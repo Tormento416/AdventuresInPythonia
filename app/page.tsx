@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ARCHETYPES, Archetype } from "@/lib/db/models";
+import { ContextCloud } from "@/components/ContextCloud";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -103,7 +104,7 @@ export default function LandingPage() {
     {
       week: 1,
       title: "Syntax & Control Flow",
-      subtitle: "Awakening in Syntaxia",
+      subtitle: "Floor 1 — Awakening of Syntaxia",
       color: "cyan",
       boss: "Syntaxius (Day 7)",
       project: "Interactive CLI RPG Combat Engine",
@@ -119,7 +120,7 @@ export default function LandingPage() {
     {
       week: 2,
       title: "Data Structures & Logic",
-      subtitle: "The Data Caverns",
+      subtitle: "Floor 2 — The Data Caverns",
       color: "emerald",
       boss: "Algorithma (Day 14)",
       project: "Hero Inventory & Spellbook Manager",
@@ -135,7 +136,7 @@ export default function LandingPage() {
     {
       week: 3,
       title: "OOP & Persistence",
-      subtitle: "The Object-Oriented Citadel",
+      subtitle: "Floor 3 — The Object-Oriented Citadel",
       color: "purple",
       boss: "Iron Colossus (Day 21)",
       project: "Dungeon Crawler Engine with Save Files",
@@ -151,7 +152,7 @@ export default function LandingPage() {
     {
       week: 4,
       title: "Real-World Sorcery & Pygame",
-      subtitle: "The Code Sovereign Realm",
+      subtitle: "Floor 4 — The Code Sovereign Realm",
       color: "amber",
       boss: "Malakor (Day 28 Final Boss)",
       project: "Retro Arcade Video Game & Live Weather API",
@@ -516,7 +517,115 @@ export default function LandingPage() {
       </section>
 
 
-      {/* SECTION 2: 7 CHARACTER ARCHETYPES SHOWCASE */}
+      {/* SECTION 2: ARCHETYPE SPECIALIZATION PATHS (spec section) */}
+      <section className="py-20 bg-[#060b15] border-t-2 border-slate-900">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="text-center">
+            <span className="font-retro text-xs font-bold uppercase tracking-widest text-purple-400">
+              2. Archetype Specialization Paths
+            </span>
+            <h2 className="mt-2 font-pixel text-3xl sm:text-5xl font-extrabold text-white">
+              Choose Your Dungeon Path
+            </h2>
+            <p className="mt-3 mx-auto max-w-2xl font-sans text-sm text-slate-300">
+              Dungeons are procedurally tailored to match your selected specialization archetype. Your chosen path shapes obstacle types, code challenges, and end-game capstone projects.
+            </p>
+          </div>
+
+          {/* 4 Highlighted Spec Archetypes */}
+          <div className="mt-12 grid gap-5 sm:grid-cols-2">
+            {[
+              {
+                id: 'wizard',
+                color: 'cyan',
+                borderColor: 'border-cyan-500/50',
+                bgColor: 'bg-cyan-950/30',
+                labelColor: 'text-cyan-400',
+                icon: '🧙‍♂️',
+                name: 'Wizard — AI & Generative Reasoning',
+                description: 'Focuses on logic gate puzzles and semantic text processing. Mid-game challenges involve writing structured prompts or parsing response strings using local SLM interfaces.',
+                exampleCode: "classify(prompt) -> 'attack' | 'defend'"
+              },
+              {
+                id: 'rogue',
+                color: 'rose',
+                borderColor: 'border-rose-500/50',
+                bgColor: 'bg-rose-950/30',
+                labelColor: 'text-rose-400',
+                icon: '🗡️',
+                name: 'Rogue — Offensive Security & PenTesting',
+                description: 'Focuses on decoding locks, regex matching, and payload creation. Challenges include intercepting mock network packet lists and extracting auth tokens via string slicing.',
+                exampleCode: "token = packet[8:24].decode('utf-8')"
+              },
+              {
+                id: 'warrior',
+                color: 'emerald',
+                borderColor: 'border-emerald-500/50',
+                bgColor: 'bg-emerald-950/30',
+                labelColor: 'text-emerald-400',
+                icon: '⚔️',
+                name: 'Warrior — Data Science & Matrix Operations',
+                description: 'Focuses on horde management (large dataset filtering). Challenges require list comprehensions and array operations to filter active threats.',
+                exampleCode: "[e for e in enemies if e.is_active]"
+              },
+              {
+                id: 'healer',
+                color: 'amber',
+                borderColor: 'border-amber-500/50',
+                bgColor: 'bg-amber-950/30',
+                labelColor: 'text-amber-400',
+                icon: '🛡️',
+                name: 'Healer — Defensive Security & Threat Hunting',
+                description: 'Focuses on error handling, log parsing, and state protection. Challenges heavily feature try/except blocks to neutralize runtime exceptions and corruption loops.',
+                exampleCode: "try:\n    secure_connect()\nexcept RuntimeError:\n    log_threat()"
+              }
+            ].map((arch) => (
+              <div
+                key={arch.id}
+                className={`rounded-xl border-2 ${arch.borderColor} ${arch.bgColor} p-6`}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">{arch.icon}</span>
+                  <h3 className={`font-pixel text-lg font-bold ${arch.labelColor}`}>{arch.name}</h3>
+                </div>
+                <p className="font-sans text-sm text-slate-300 leading-relaxed">{arch.description}</p>
+                <div className="mt-4 rounded-lg bg-[#020608] border border-slate-800 px-3 py-2 font-mono text-xs text-cyan-300">
+                  <span className="text-slate-500"># Example challenge: </span>
+                  <pre className="mt-0.5 whitespace-pre-wrap">{arch.exampleCode}</pre>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Additional 3 archetypes (Trickster, Ranger, Tank) */}
+          <div className="mt-6 grid gap-5 sm:grid-cols-3">
+            {(['trickster', 'ranger', 'tank'] as Archetype[]).map((id) => {
+              const a = ARCHETYPES[id];
+              return (
+                <div key={id} className="rounded-xl border-2 border-slate-700/50 bg-slate-900/40 p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">{a.icon}</span>
+                    <h3 className="font-pixel text-sm font-bold text-slate-200">{a.name} — {a.focusArea}</h3>
+                  </div>
+                  <p className="font-sans text-xs text-slate-400 leading-relaxed">{a.description}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-10 text-center">
+            <a
+              href="/create-character"
+              className="inline-block rounded-xl border-2 border-amber-400 bg-amber-500 px-10 py-4 font-retro text-xs font-bold text-slate-950 shadow-[4px_4px_0px_#000000,0_0_20px_rgba(245,158,11,0.4)] transition hover:scale-105 hover:bg-amber-400"
+            >
+              ⚡ Choose Your Specialization Path
+            </a>
+          </div>
+        </div>
+      </section>
+
+
+      {/* SECTION 3: 7 CHARACTER ARCHETYPES SHOWCASE */}
       <section className="py-20 bg-[#070d18]">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center">
@@ -715,6 +824,9 @@ export default function LandingPage() {
       <footer className="border-t border-slate-800 bg-[#040810] py-8 text-center text-xs text-slate-500 font-mono">
         <p>© 2026 Adventures in Pythonia • Gamified 28-Day RPG Python Bootcamp</p>
       </footer>
+
+      {/* Context Cloud — persistent floating companion */}
+      <ContextCloud currentDay={1} />
     </main>
   );
 }

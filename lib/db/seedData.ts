@@ -1,4 +1,5 @@
-import { Quest, WeeklyBoss } from "./models";
+import { Quest, SubQuest, WeeklyBoss } from "./models";
+import { WEEK1_ARCHETYPE_VARIANTS } from "./archetypeVariants";
 
 export const WEEKLY_BOSSES_SEED: WeeklyBoss[] = [
   {
@@ -1322,7 +1323,7 @@ export const DAILY_QUESTS_SEED: Quest[] = [
   },
   {
     dayNumber: 27,
-    title: "Game Engine Mechanics - Pygame & Graphic Loops",
+    title: "Game Engine Mechanics - Pygame & Capstone Compile",
     subtitle: "Game Loop, Sprites & Collision Math",
     chapterWeek: 4,
     category: "Frameworks",
@@ -1330,27 +1331,27 @@ export const DAILY_QUESTS_SEED: Quest[] = [
     subQuests: [
       {
         id: "d27_sq1",
-        title: "Side Quest 1: The Game Loop Tick",
-        narrative: "Implement frame updates inside a continuous game loop.",
-        conceptExplanation: "A standard game loop updates state, checks input, and renders graphics 60 times per second.",
-        codeTask: "Write function `update_player_pos(x, vx)` returning `x + vx`. Given `x=100, vx=5`, call and print new position.",
-        starterCode: "# Define update_player_pos\n\n",
-        solutionCode: "def update_player_pos(x, vx):\n    return x + vx\n\nprint(update_player_pos(100, 5))",
-        testAssertion: "output.trim() === '105'",
+        title: "Side Quest 1: The 60 FPS Game Loop Physics",
+        narrative: "Calculated player movement vectors inside the frame update loop.",
+        conceptExplanation: "In 2D game loops, player position updates every frame by adding velocity: `new_pos = pos + velocity`.",
+        codeTask: "Write a function `update_player_pos(pos, velocity)` that returns `pos + velocity`. Call `update_player_pos(100, 5)` and print the result.",
+        starterCode: "def update_player_pos(pos, velocity):\n    # Return pos + velocity\n    pass\n\nprint(update_player_pos(100, 5))\n",
+        solutionCode: "def update_player_pos(pos, velocity):\n    return pos + velocity\n\nprint(update_player_pos(100, 5))",
+        testAssertion: "output.includes('105')",
         xpReward: 50,
-        hints: ["def update_player_pos(x, vx): return x + vx"]
+        hints: ["def update_player_pos(pos, velocity): return pos + velocity"]
       },
       {
         id: "d27_sq2",
-        title: "Side Quest 2: Bounding Box Collision Check",
-        narrative: "Detect collisions between player bounding box and enemy bounding box.",
-        conceptExplanation: "Bounding box collision checks if coordinate ranges overlap on X and Y axes.",
-        codeTask: "Write function `check_collision(p_x, e_x)` returning `True` if `abs(p_x - e_x) < 20` else `False`. Call with `(50, 60)` and print.",
-        starterCode: "# Define check_collision\n\n",
-        solutionCode: "def check_collision(p_x, e_x):\n    return abs(p_x - e_x) < 20\n\nprint(check_collision(50, 60))",
-        testAssertion: "output.trim() === 'True'",
+        title: "Side Quest 2: Hitbox Collision Detection",
+        narrative: "Detect if two sprite hitboxes overlap in 2D space.",
+        conceptExplanation: "Collision detection checks if the distance between objects is less than their combined bounding radius.",
+        codeTask: "Write a function `check_collision(x1, x2)` that returns `True` if `abs(x1 - x2) < 20` else `False`. Call `check_collision(50, 60)` and print.",
+        starterCode: "def check_collision(x1, x2):\n    # Return True if abs(x1 - x2) < 20 else False\n    pass\n\nprint(check_collision(50, 60))\n",
+        solutionCode: "def check_collision(x1, x2):\n    return abs(x1 - x2) < 20\n\nprint(check_collision(50, 60))",
+        testAssertion: "output.includes('True')",
         xpReward: 50,
-        hints: ["abs(p_x - e_x) < 20"]
+        hints: ["return abs(x1 - x2) < 20"]
       }
     ],
     miniBoss: {
@@ -1360,10 +1361,10 @@ export const DAILY_QUESTS_SEED: Quest[] = [
       bossAvatar: "👾",
       bossHp: 580,
       narrative: "Fix the frame counter inside the Glitch Demon's engine loop!",
-      combatTask: "Given `frames = 0`. Write a loop that increments `frames` by 1 five times, and prints `f'Rendered frame {frames}'` at the end.",
-      starterCode: "frames = 0\n# Loop 5 times incrementing frames\n\nprint(f'Rendered frame {frames}')",
-      solutionCode: "frames = 0\nfor _ in range(5):\n    frames += 1\nprint(f'Rendered frame {frames}')",
-      testAssertion: "output.trim() === 'Rendered frame 5'",
+      combatTask: "Initialize `frames = 0`. Write a `for` loop that runs 5 times, incrementing `frames += 1` on each iteration. At the end (outside the loop), print `f'Rendered frame {frames}'`.",
+      starterCode: "frames = 0\n# Write for loop running 5 times, incrementing frames\n\nprint(f'Rendered frame {frames}')",
+      solutionCode: "frames = 0\nfor _ in range(5):\n    frames += 1\n\nprint(f'Rendered frame {frames}')",
+      testAssertion: "output.includes('Rendered frame 5')",
       xpReward: 150,
       lootReward: "Gem of 60 FPS Smoothness"
     }
@@ -1379,4 +1380,10 @@ export const DAILY_QUESTS_SEED: Quest[] = [
     isWeeklyBossDay: true,
     subQuests: []
   }
-];
+].map((quest): Quest => ({
+  ...quest,
+  subQuests: quest.subQuests.map((sq: any): SubQuest => ({
+    ...sq,
+    archetypeVariant: WEEK1_ARCHETYPE_VARIANTS[sq.id] || sq.archetypeVariant,
+  })),
+}));

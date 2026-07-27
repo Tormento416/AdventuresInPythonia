@@ -25,7 +25,7 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     roleTitle: 'Archmage of Neural Logic',
     focusArea: 'AI & Generative Reasoning',
     icon: '🧙‍♂️',
-    description: 'Master of machine learning incantations, LLM prompts, and automated intelligence.',
+    description: 'Focuses on logic gate puzzles and semantic text processing. Mid-game challenges involve writing structured prompts or parsing response strings using local SLM interfaces.',
     traitBonus: '+15% Mana efficiency on AI & algorithmic puzzles.',
     starterSpell: 'Promptic Bolt'
   },
@@ -33,9 +33,9 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     id: 'warrior',
     name: 'Warrior',
     roleTitle: 'Titan of Data Analytics',
-    focusArea: 'Data Science & Matrix Cleaving',
+    focusArea: 'Data Science & Matrix Operations',
     icon: '⚔️',
-    description: 'Conqueror of vast datasets, matrix transformations, and statistical battlefields.',
+    description: 'Focuses on horde management (large dataset filtering). Challenges require list comprehensions and array operations to filter active threats (e.g., [e for e in enemies if e.is_active]).',
     traitBonus: '+20% Critical Hit damage when solving list & dataframe array challenges.',
     starterSpell: 'Data Cleave'
   },
@@ -45,7 +45,7 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     roleTitle: 'Master of Game Engines',
     focusArea: 'Game Development & Animation Logic',
     icon: '🃏',
-    description: 'Weaver of physics loops, sprite collisions, and interactive gaming worlds.',
+    description: 'Weaver of physics loops, sprite collisions, and interactive gaming worlds. Challenges involve timing, event loops, and pixel-grid coordinate systems.',
     traitBonus: 'Dodge 1 failed execution per daily challenge with Illusion Shield.',
     starterSpell: 'Sprite Warp'
   },
@@ -53,9 +53,9 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     id: 'rogue',
     name: 'Rogue',
     roleTitle: 'Red Team Cyber Shadow',
-    focusArea: 'Offensive Security & Penetration Testing',
+    focusArea: 'Offensive Security & PenTesting',
     icon: '🗡️',
-    description: 'Infiltrator of networks, payload craftsperson, and security exploit creator.',
+    description: 'Focuses on decoding locks, regex matching, and payload creation. Challenges include intercepting mock network packet lists and extracting auth tokens via string slicing.',
     traitBonus: 'Uncovers secret hints and backdoor exploit solutions.',
     starterSpell: 'Shadow Infiltration'
   },
@@ -65,7 +65,7 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     roleTitle: 'Web Realm Navigator',
     focusArea: 'Web Development & RESTful API Architecture',
     icon: '🏹',
-    description: 'Builder of web services, API endpoints, microservices, and client interfaces.',
+    description: 'Builder of web services, API endpoints, microservices, and client interfaces. Challenges involve HTTP request handling and JSON data wrangling.',
     traitBonus: '+15% Speed bonus when building REST endpoints and string builders.',
     starterSpell: 'HTTP Arrow'
   },
@@ -75,7 +75,7 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     roleTitle: 'Blue Team Sentinel',
     focusArea: 'Defensive Security & Threat Hunting',
     icon: '🛡️',
-    description: 'Guardian of log streams, anomaly detection, firewall scripts, and system resilience.',
+    description: 'Focuses on error handling, log parsing, and state protection. Challenges heavily feature try/except blocks to neutralize runtime exceptions and corruption loops.',
     traitBonus: 'Restores 25 HP upon resolving try/except error handling challenges.',
     starterSpell: 'Sanctuary Ward'
   },
@@ -85,7 +85,7 @@ export const ARCHETYPES: Record<Archetype, ArchetypeDetails> = {
     roleTitle: 'Architect of Software Engineering',
     focusArea: 'Systems Design & OOP Engineering',
     icon: '🏰',
-    description: 'Sturdy builder of clean code, object-oriented design patterns, and enterprise tools.',
+    description: 'Sturdy builder of clean code, object-oriented design patterns, and enterprise tools. Challenges involve class design, inheritance hierarchies, and abstract interfaces.',
     traitBonus: 'Absorbs syntax errors with Ironclad Refactoring.',
     starterSpell: 'OOP Bastion'
   }
@@ -102,6 +102,7 @@ export interface SubQuest {
   testAssertion: string; // JavaScript / Pyodide assertion check code
   xpReward: number;
   hints: string[];
+  contextCloudHint?: string; // Syntax cheat-sheet snippet shown in the Context Cloud companion
   archetypeVariant?: Partial<Record<Archetype, {
     title?: string;
     narrative?: string;
@@ -133,6 +134,7 @@ export interface Quest {
   title: string;
   subtitle: string;
   chapterWeek: number; // 1, 2, 3, or 4
+  floorLevel?: number; // 1-4, corresponds to the 4 narrative Floor Levels in the dungeon arc
   category: string;
   isWeeklyBossDay: boolean; // true for Days 7, 14, 21, 28
   subQuests: SubQuest[];
