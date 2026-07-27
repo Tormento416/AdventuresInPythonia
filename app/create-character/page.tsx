@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ArchetypeSelector } from "@/components/ArchetypeSelector";
 import { Archetype } from "@/lib/db/models";
 
 export default function CreateCharacterPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const cached = localStorage.getItem("py_hero_user");
@@ -22,33 +20,8 @@ export default function CreateCharacterPage() {
   async function handleSelectArchetype(archetype: Archetype) {
     setLoading(true);
 
-    // If user has a registered cloud account (id exists and not guest), save to MongoDB API
-    if (user && user.id && !user.isGuest && !user.id.startsWith("guest_")) {
-      try {
-        const res = await fetch("/api/profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id || user._id,
-            archetype
-          })
-        });
-
-        const data = await res.json();
-        setLoading(false);
-
-        if (res.ok && data.user) {
-          localStorage.setItem("py_hero_user", JSON.stringify(data.user));
-          router.push("/quests/1");
-          return;
-        }
-      } catch (err: any) {
-        setLoading(false);
-      }
-    }
-
-    // Guest Mode: Create/Update local guest hero profile in browser storage
-    const guestUser = {
+    // Build updated hero profile object
+    const updatedUser = {
       ...(user || {}),
       id: user?.id || "guest_" + Date.now(),
       username: user?.username || "GuestHero",
@@ -65,12 +38,27 @@ export default function CreateCharacterPage() {
       completedMiniBossDays: user?.completedMiniBossDays || [],
       completedWeeklyBossWeeks: user?.completedWeeklyBossWeeks || [],
       lootInventory: user?.lootInventory || [],
-      isGuest: true
     };
 
-    localStorage.setItem("py_hero_user", JSON.stringify(guestUser));
-    setLoading(false);
-    router.push("/quests/1");
+    // Save hero state locally
+    localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
+
+    // Try cloud save if registered user
+    if (user && user.id && !user.isGuest && !user.id.startsWith("guest_")) {
+      try {
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id || user._id,
+            archetype,
+          }),
+        });
+      } catch (err: any) {}
+    }
+
+    // Always launch directly into Day 1 Quest Dungeon
+    window.location.href = "/quests/1";
   }
 
   return (
