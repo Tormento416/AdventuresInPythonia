@@ -14,9 +14,11 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
   const dayNum = Number(params.day);
   const router = useRouter();
 
+  const initialSeedQuest = DAILY_QUESTS_SEED.find((q) => q.dayNumber === dayNum) || null;
+
   const [user, setUser] = useState<any>(null);
-  const [quest, setQuest] = useState<Quest | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [quest, setQuest] = useState<Quest | null>(initialSeedQuest);
+  const [loading, setLoading] = useState(!initialSeedQuest);
 
   // Active interaction in Dungeon
   const [activeObstacle, setActiveObstacle] = useState<ObstacleConfig | null>(null);
@@ -52,21 +54,16 @@ export default function DailyQuestPage({ params }: { params: { day: string } }) 
       localStorage.setItem("py_hero_user", JSON.stringify(guest));
     }
 
-    // Load quest details from API or seed data
+    // Optional background sync if API has custom server quest data
     fetch(`/api/quests?day=${dayNum}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.quest) {
           setQuest(data.quest);
-        } else {
-          const fallback = DAILY_QUESTS_SEED.find((q) => q.dayNumber === dayNum);
-          setQuest(fallback || null);
         }
         setLoading(false);
       })
       .catch(() => {
-        const fallback = DAILY_QUESTS_SEED.find((q) => q.dayNumber === dayNum);
-        setQuest(fallback || null);
         setLoading(false);
       });
   }, [dayNum, router]);

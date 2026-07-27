@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArchetypeSelector } from "@/components/ArchetypeSelector";
 import { Archetype } from "@/lib/db/models";
 
 export default function CreateCharacterPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const cached = localStorage.getItem("py_hero_user");
@@ -17,7 +19,7 @@ export default function CreateCharacterPage() {
     }
   }, []);
 
-  async function handleSelectArchetype(archetype: Archetype) {
+  function handleSelectArchetype(archetype: Archetype) {
     setLoading(true);
 
     // Build updated hero profile object
@@ -40,25 +42,23 @@ export default function CreateCharacterPage() {
       lootInventory: user?.lootInventory || [],
     };
 
-    // Save hero state locally
+    // 1. Save hero state locally (Instant)
     localStorage.setItem("py_hero_user", JSON.stringify(updatedUser));
 
-    // Try cloud save if registered user
+    // 2. Non-blocking async background cloud save if registered user
     if (user && user.id && !user.isGuest && !user.id.startsWith("guest_")) {
-      try {
-        await fetch("/api/profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user.id || user._id,
-            archetype,
-          }),
-        });
-      } catch (err: any) {}
+      fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id || user._id,
+          archetype,
+        }),
+      }).catch(() => {});
     }
 
-    // Always launch directly into Day 1 Quest Dungeon
-    window.location.href = "/quests/1";
+    // 3. Instant client-side navigation to Day 1 Dungeon
+    router.push("/quests/1");
   }
 
   return (
